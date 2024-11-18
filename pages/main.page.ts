@@ -265,4 +265,26 @@ export class MainPage {
     await dialog.accept();
   }
 
+  async clickEveryItemUnderEveryTab(
+    tabLocator: Locator,
+    itemLocator: Locator,
+    onItemInteraction?: () => Promise<void>
+  ) {
+    const totalTabs = await tabLocator.count();
+  
+    for (let i = 0; i < totalTabs; i++) {
+      await tabLocator.nth(i).click();
+  
+      const totalItems = await itemLocator.count();
+      for (let j = 0; j < totalItems; j++) {
+        await itemLocator.nth(j).click();
+        if (onItemInteraction) {
+          await onItemInteraction();
+        }
+  
+        await this.clickLogoHeader();
+      }
+    }
+  }
+
 }
