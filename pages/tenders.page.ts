@@ -1,6 +1,6 @@
 import { Page, Locator } from "@playwright/test";
 
-export class ProductsPage {
+export class TendersPage {
   readonly page: Page;
   readonly relevantUnits: Locator;
   readonly zeroUnitsTextLocator: Locator;
@@ -8,9 +8,9 @@ export class ProductsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.relevantUnits = page.locator('[data-testid="link"]');
+    this.relevantUnits = page.locator('[data-testid="tenderLink"]');
     this.zeroUnitsTextLocator = page.locator("div.MapPagination_count__c_dzg");
-    this.url = "/products/";
+    this.url = "/tenders-map/";
   }
 
   async goTo() {
@@ -25,7 +25,7 @@ export class ProductsPage {
     // Check if there are units present on the page
     const isZeroUnitsTextFound =
       (await this.zeroUnitsTextLocator
-        .locator("text=Знайдено 0 оголошень на видимій території")
+        .locator("text=Знайдено 0 тендерів на видимій території")
         .count()) > 0;
     if (!isZeroUnitsTextFound) {
       await this.relevantUnits.first().click();

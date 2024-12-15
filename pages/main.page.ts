@@ -1,7 +1,6 @@
 import { Page, Locator } from "@playwright/test";
 import { ApiService } from "../services/api.service";
-import { APIRequestContext } from '@playwright/test';
-
+import { APIRequestContext } from "@playwright/test";
 
 export class MainPage {
   readonly page: Page;
@@ -40,12 +39,16 @@ export class MainPage {
   readonly emptyPhoneInputError: Locator;
   readonly validationPhoneImputError: Locator;
   private apiService: ApiService;
+  readonly loader: Locator;
+  readonly polytika: Locator;
 
   constructor(page: Page, requestContext?: APIRequestContext, token?: string) {
     if (requestContext && token) {
       this.apiService = new ApiService(token, requestContext);
     }
     this.page = page;
+
+    this.loader = page.getByTestId("preloader").locator("path");
     this.servicesSection = page.locator('[data-testid="services"]');
     this.serviceItems = page.locator('div[data-testid^="service__"]');
     this.logoHeader = page.locator("a.Navbar_logo__RsJHS");
@@ -66,15 +69,15 @@ export class MainPage {
     );
     this.specialEquipmentItems = page.locator('div[data-testid^="category__"]');
     this.aboutLabel = page.locator('[data-testid="content"]');
-    this.privacyPolicyLink = page.locator(
-      '[data-testid="politika-konfidenciinosti"]'
-    );
-    this.cookiePolicyLink = page.locator(
-      '[data-testid="pravila-vikoristannya-failiv-cookie"]'
-    );
-    this.termsOfUseLink = page.locator(
-      '[data-testid="umovi-dostupu-ta-koristuvannya"]'
-    );
+    this.privacyPolicyLink = page.getByRole("link", {
+      name: "Політика конфіденційності",
+    });
+    this.cookiePolicyLink = page.getByRole("link", {
+      name: "Правила використання файлів",
+    });
+    this.termsOfUseLink = page.getByRole("link", {
+      name: "Умови доступу та користування",
+    });
     this.usersLabel = page.locator("text=Користувачам");
     this.announcementsLink = page.locator('a[href="/products/"]:not(header *)');
     this.tendersLink = page.locator('a[href="/tenders-map/"]:not(header *)');
@@ -82,27 +85,36 @@ export class MainPage {
     this.contactEmail = page.locator('a[href="mailto:info@rentzila.com.ua"]');
     this.logoFooter = page.locator('[data-testid="logo"]:not(header *)');
     this.copyrightLabel = page.locator('[data-testid="copyright"]');
-
-    this.consultationForm = page.locator('.Layouts_consultation__JUU1R');
+    this.consultationForm = page.locator(".Layouts_consultation__JUU1R");
     this.nameInput = page.locator('input[name="name"]');
-    this.nameForm = page.locator('.ConsultationForm_name__3bVcz')
-    this.emptyNameInputError = this.nameForm.locator('text=Поле не може бути порожнім');
-    this.phoneForm = page.locator('.ConsultationForm_phone__vEOS9')
-    this.phoneInput = page.locator('#mobile');
-    this.emptyPhoneInputError = this.phoneForm.locator('text=Поле не може бути порожнім')
-    this.validationPhoneImputError = this.phoneForm.locator('text=Телефон не пройшов валідацію')
+    this.nameForm = page.locator(".ConsultationForm_name__3bVcz");
+    this.emptyNameInputError = this.nameForm.locator(
+      "text=Поле не може бути порожнім"
+    );
+    this.phoneForm = page.locator(".ConsultationForm_phone__vEOS9");
+    this.phoneInput = page.locator("#mobile");
+    this.emptyPhoneInputError = this.phoneForm.locator(
+      "text=Поле не може бути порожнім"
+    );
+    this.validationPhoneImputError = this.phoneForm.locator(
+      "text=Телефон не пройшов валідацію"
+    );
     this.submitButton = page.locator('button[type="submit"]');
   }
 
   async goTo() {
-    await this.page.goto("https://dev.rentzila.com.ua/");
+    await this.page.goto("/");
+    //await this.page.waitForLoadState("networkidle", { timeout: 60000 }); // Ждем, пока сеть станет "idle"
   }
 
   // Method to check if backcall present
-  async validateRequestInDatabase(name: string, phone: string): Promise<boolean> {
-    return this.apiService.validateRequestInDatabase(name, phone);
+  async validateRequestInDatabase(
+    name: string,
+    phone: string
+  ): Promise<boolean> {
+    return await this.apiService.validateRequestInDatabase(name, phone);
   }
-  
+
   async isPopularTabDisplayed() {
     return await this.popularServiceTab.isVisible();
   }
@@ -223,6 +235,10 @@ export class MainPage {
   }
 
   async clickContactEmail() {
+    const href = await this.contactEmail.getAttribute("href");
+    if (!href || !href.startsWith("mailto:")) {
+      throw new Error("Email link does not have a valid 'mailto:' href");
+    }
     await this.contactEmail.click();
   }
 
@@ -242,15 +258,15 @@ export class MainPage {
     await this.phoneInput.fill(phone);
   }
 
-  async isEmptyNameErrorDisplayed(){
+  async isEmptyNameErrorDisplayed() {
     return await this.emptyNameInputError.isVisible();
   }
 
-  async isEmptyPhoneErrorDisplayed(){
+  async isEmptyPhoneErrorDisplayed() {
     return await this.emptyPhoneInputError.isVisible();
   }
 
-  async isValidationPhoneErrorDisplayed(){
+  async isValidationPhoneErrorDisplayed() {
     return await this.validationPhoneImputError.isVisible();
   }
 
@@ -259,7 +275,7 @@ export class MainPage {
   }
 
   async clickAndAcceptDialog() {
-    const dialogPromise = this.page.waitForEvent('dialog');
+    const dialogPromise = this.page.waitForEvent("dialog");
     await this.submitButton.click();
     const dialog = await dialogPromise;
     await dialog.accept();
@@ -271,20 +287,26 @@ export class MainPage {
     onItemInteraction?: () => Promise<void>
   ) {
     const totalTabs = await tabLocator.count();
-  
+
     for (let i = 0; i < totalTabs; i++) {
       await tabLocator.nth(i).click();
-  
+
       const totalItems = await itemLocator.count();
       for (let j = 0; j < totalItems; j++) {
         await itemLocator.nth(j).click();
         if (onItemInteraction) {
           await onItemInteraction();
         }
-  
+
         await this.clickLogoHeader();
       }
     }
   }
-
+  async isCurrentUrl(expectedUrl: string): Promise<boolean> {
+    await this.page.waitForLoadState("load");
+    return this.page.url() === expectedUrl;
+  }
+  async isLoaderVisible() {
+    return await this.loader.isVisible();
+  }
 }
