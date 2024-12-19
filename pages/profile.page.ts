@@ -9,9 +9,7 @@ export class ProfilePage {
   }
 
   async isProfilePhoneCorrect(phone: string): Promise<boolean> {
-    const phoneValue = (await this.phone.inputValue()).replace(/\s+/g, '');
+    const phoneValue = (await this.phone.inputValue()).replace(/\s+/g, "");
     return phone === phoneValue;
-}
-
-
+  }
 }

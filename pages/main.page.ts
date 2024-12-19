@@ -57,12 +57,17 @@ export class MainPage {
   readonly profileButton: Locator;
   readonly invalidPasswordError: Locator;
   readonly invalidCredentialsError: Locator;
+  readonly loader: Locator;
+  readonly polytika: Locator;
+  readonly passwordError: Locator;
 
   constructor(page: Page, requestContext?: APIRequestContext, token?: string) {
     if (requestContext && token) {
       this.apiService = new ApiService(token, requestContext);
     }
     this.page = page;
+
+    this.loader = page.getByTestId("preloader").locator("path");
     this.servicesSection = page.locator('[data-testid="services"]');
     this.serviceItems = page.locator('div[data-testid^="service__"]');
     this.logoHeader = page.locator("a.Navbar_logo__RsJHS");
@@ -83,15 +88,15 @@ export class MainPage {
     );
     this.specialEquipmentItems = page.locator('div[data-testid^="category__"]');
     this.aboutLabel = page.locator('[data-testid="content"]');
-    this.privacyPolicyLink = page.locator(
-      '[data-testid="politika-konfidenciinosti"]'
-    );
-    this.cookiePolicyLink = page.locator(
-      '[data-testid="pravila-vikoristannya-failiv-cookie"]'
-    );
-    this.termsOfUseLink = page.locator(
-      '[data-testid="umovi-dostupu-ta-koristuvannya"]'
-    );
+    this.privacyPolicyLink = page.getByRole("link", {
+      name: "Політика конфіденційності",
+    });
+    this.cookiePolicyLink = page.getByRole("link", {
+      name: "Правила використання файлів",
+    });
+    this.termsOfUseLink = page.getByRole("link", {
+      name: "Умови доступу та користування",
+    });
     this.usersLabel = page.locator("text=Користувачам");
     this.announcementsLink = page.locator('a[href="/products/"]:not(header *)');
     this.tendersLink = page.locator('a[href="/tenders-map/"]:not(header *)');
@@ -99,7 +104,6 @@ export class MainPage {
     this.contactEmail = page.locator('a[href="mailto:info@rentzila.com.ua"]');
     this.logoFooter = page.locator('[data-testid="logo"]:not(header *)');
     this.copyrightLabel = page.locator('[data-testid="copyright"]');
-
     this.consultationForm = page.locator(".Layouts_consultation__JUU1R");
     this.nameInput = page.locator('input[name="name"]');
     this.nameForm = page.locator(".ConsultationForm_name__3bVcz");
@@ -147,6 +151,9 @@ export class MainPage {
     this.hidePasswordButton = this.passwordField.locator(
       '[data-testid="reactHookButton"]'
     );
+    this.passwordError = this.passwordField.locator(
+      ".CustomReactHookInput_error_message__jq01z"
+    );
     this.userIcon = page.locator('[data-testid="avatarBlock"]');
     this.profileDropdown = page.locator('[data-testid="profileDropdown"]');
     this.profileDropdownEmail = this.profileDropdown.locator(
@@ -159,7 +166,8 @@ export class MainPage {
   }
 
   async goTo() {
-    await this.page.goto("https://dev.rentzila.com.ua/");
+    await this.page.goto("/");
+    //await this.page.waitForLoadState("networkidle", { timeout: 60000 }); // Ждем, пока сеть станет "idle"
   }
 
   // Method to check if backcall present
@@ -167,7 +175,7 @@ export class MainPage {
     name: string,
     phone: string
   ): Promise<boolean> {
-    return this.apiService.validateRequestInDatabase(name, phone);
+    return await this.apiService.validateRequestInDatabase(name, phone);
   }
 
   async isPopularTabDisplayed() {
@@ -290,6 +298,10 @@ export class MainPage {
   }
 
   async clickContactEmail() {
+    const href = await this.contactEmail.getAttribute("href");
+    if (!href || !href.startsWith("mailto:")) {
+      throw new Error("Email link does not have a valid 'mailto:' href");
+    }
     await this.contactEmail.click();
   }
 
@@ -401,10 +413,10 @@ export class MainPage {
   async isInvalidCredentialsErrorVisible() {
     try {
       await this.invalidCredentialsError.waitFor({
-        state: "visible",
+        state: "attached",
         timeout: 15000,
       });
-      return true;
+      return await this.invalidCredentialsError.isVisible();
     } catch {
       return false;
     }
@@ -412,5 +424,18 @@ export class MainPage {
 
   async isInvalidPasswordErrorDisplayed() {
     return this.invalidPasswordError.isVisible();
+  }
+
+  async isCurrentUrl(expectedUrl: string): Promise<boolean> {
+    await this.page.waitForLoadState("load");
+    return this.page.url() === expectedUrl;
+  }
+
+  async isLoaderVisible() {
+    return await this.loader.isVisible();
+  }
+
+  async isAnyPasswordErrorVisible() {
+    return this.passwordError.isVisible();
   }
 }
