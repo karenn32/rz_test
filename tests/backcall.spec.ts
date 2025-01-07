@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { MainPage } from "../pages/main.page.ts";
 import { generateRandomString } from "../utils/random.ts";
-import testData from "../testData.json";
+import testData from "../fixtures/testData.json";
 import { config } from "dotenv";
 
 config();

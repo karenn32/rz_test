@@ -38,9 +38,28 @@ export class MainPage {
   readonly phoneForm: Locator;
   readonly emptyPhoneInputError: Locator;
   readonly validationPhoneImputError: Locator;
+  readonly formatPhoneEmailError: Locator;
   private apiService: ApiService;
+  readonly loginForm: Locator;
+  readonly emailInput: Locator;
+  readonly passwordInput: Locator;
+  readonly openLoginFormButton: Locator;
+  readonly submitLoginButton: Locator;
+  readonly emptyEmailError: Locator;
+  readonly emptyPasswordError: Locator;
+  readonly emailField: Locator;
+  readonly passwordField: Locator;
+  readonly hidePasswordButton: Locator;
+  readonly userIcon: Locator;
+  readonly profileDropdown: Locator;
+  readonly profileDropdownEmail: Locator;
+  readonly logoutButton: Locator;
+  readonly profileButton: Locator;
+  readonly invalidPasswordError: Locator;
+  readonly invalidCredentialsError: Locator;
   readonly loader: Locator;
   readonly polytika: Locator;
+  readonly passwordError: Locator;
 
   constructor(page: Page, requestContext?: APIRequestContext, token?: string) {
     if (requestContext && token) {
@@ -100,6 +119,50 @@ export class MainPage {
       "text=Телефон не пройшов валідацію"
     );
     this.submitButton = page.locator('button[type="submit"]');
+    this.loginForm = page.locator(".LoginForm_form__7G3Zk");
+    this.openLoginFormButton = page.locator(
+      ".NavbarAuthBlock_buttonEnter__c9siH",
+      { hasText: "Вхід" }
+    );
+    this.submitLoginButton = this.loginForm.locator('button[type="submit"]');
+    this.emailField = this.loginForm
+      .locator(".CustomReactHookInput_field__ys1mK")
+      .nth(0);
+    this.passwordField = this.loginForm
+      .locator(".CustomReactHookInput_field__ys1mK")
+      .nth(1);
+    this.emailInput = this.emailField.locator("#email");
+    this.passwordInput = this.passwordField.locator("#password");
+    this.emptyEmailError = this.emailField.locator(
+      "text=Поле не може бути порожнім"
+    );
+    this.formatPhoneEmailError = this.emailField.locator(
+      "text=Неправильний формат email або номера телефону"
+    );
+    this.emptyPasswordError = this.passwordField.locator(
+      "text=Поле не може бути порожнім"
+    );
+    this.invalidPasswordError = this.passwordField.locator(
+      "text=Пароль повинен містити як мінімум 1 цифру, 1 велику літеру і 1 малу літеру, також не повинен містити кирилицю та пробіли"
+    );
+    this.invalidCredentialsError = this.loginForm.locator(
+      "text=Невірний e-mail або пароль"
+    );
+    this.hidePasswordButton = this.passwordField.locator(
+      '[data-testid="reactHookButton"]'
+    );
+    this.passwordError = this.passwordField.locator(
+      ".CustomReactHookInput_error_message__jq01z"
+    );
+    this.userIcon = page.locator('[data-testid="avatarBlock"]');
+    this.profileDropdown = page.locator('[data-testid="profileDropdown"]');
+    this.profileDropdownEmail = this.profileDropdown.locator(
+      '[data-testid="email"]'
+    );
+    this.logoutButton = this.profileDropdown.locator('[data-testid="logout"]');
+    this.profileButton = this.profileDropdown.locator(
+      '[data-testid="profile"]'
+    );
   }
 
   async goTo() {
@@ -172,31 +235,31 @@ export class MainPage {
   }
 
   async isAboutLabelDisplayed() {
-    return await this.aboutLabel.isVisible();
+    return this.aboutLabel.isVisible();
   }
 
   async isPrivacyPolicyLinkDisplayed() {
-    return await this.privacyPolicyLink.isVisible();
+    return this.privacyPolicyLink.isVisible();
   }
 
   async isCookiePolicyLinkDisplayed() {
-    return await this.cookiePolicyLink.isVisible();
+    return this.cookiePolicyLink.isVisible();
   }
 
   async isTermsOfUseLinkDisplayed() {
-    return await this.termsOfUseLink.isVisible();
+    return this.termsOfUseLink.isVisible();
   }
 
   async isUsersLabelDisplayed() {
-    return await this.usersLabel.isVisible();
+    return this.usersLabel.isVisible();
   }
 
   async isAnnouncementsLinkDisplayed() {
-    return await this.announcementsLink.isVisible();
+    return this.announcementsLink.isVisible();
   }
 
   async isTendersLinkDisplayed() {
-    return await this.tendersLink.isVisible();
+    return this.tendersLink.isVisible();
   }
 
   async isContactLabelAndEmailDisplayed() {
@@ -207,11 +270,11 @@ export class MainPage {
   }
 
   async isRentzilaLogoFooterDisplayed() {
-    return await this.logoFooter.isVisible();
+    return this.logoFooter.isVisible();
   }
 
   async isRightsReservedLabelDisplayed() {
-    return await this.copyrightLabel.isVisible();
+    return this.copyrightLabel.isVisible();
   }
 
   async clickPrivacyPolicyLink() {
@@ -259,15 +322,15 @@ export class MainPage {
   }
 
   async isEmptyNameErrorDisplayed() {
-    return await this.emptyNameInputError.isVisible();
+    return this.emptyNameInputError.isVisible();
   }
 
   async isEmptyPhoneErrorDisplayed() {
-    return await this.emptyPhoneInputError.isVisible();
+    return this.emptyPhoneInputError.isVisible();
   }
 
   async isValidationPhoneErrorDisplayed() {
-    return await this.validationPhoneImputError.isVisible();
+    return this.validationPhoneImputError.isVisible();
   }
 
   async clearNameField() {
@@ -302,11 +365,77 @@ export class MainPage {
       }
     }
   }
+
+  async openLoginForm() {
+    await this.openLoginFormButton.click();
+  }
+
+  async fillLoginForm(email: string, password: string) {
+    await this.emailInput.clear();
+    await this.passwordInput.clear();
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(password);
+  }
+
+  async clickLoginButton() {
+    await this.submitLoginButton.click();
+  }
+
+  async isEmpyPasswordErrorOnLoginVisible() {
+    return this.emptyPasswordError.isVisible();
+  }
+
+  async isEmptyEmailErrorOnLoginVisible() {
+    return this.emptyEmailError.isVisible();
+  }
+
+  async clickHidePasswordButton() {
+    await this.hidePasswordButton.click();
+  }
+
+  async clickUserIcon() {
+    await this.userIcon.click();
+  }
+
+  async clickLogoutButton() {
+    await this.logoutButton.click();
+  }
+
+  async clickProfileButton() {
+    await this.profileButton.click();
+  }
+
+  async isFormatPhoneEmailErrorVisible() {
+    return this.formatPhoneEmailError.isVisible();
+  }
+
+  //as the form sometimes doesn't work fast, I've added waitFor
+  async isInvalidCredentialsErrorVisible() {
+    try {
+      await this.invalidCredentialsError.waitFor({
+        state: "attached",
+        timeout: 15000,
+      });
+      return await this.invalidCredentialsError.isVisible();
+    } catch {
+      return false;
+    }
+  }
+
+  async isInvalidPasswordErrorDisplayed() {
+    return this.invalidPasswordError.isVisible();
+  }
+
   async isCurrentUrl(expectedUrl: string): Promise<boolean> {
     await this.page.waitForLoadState("load");
     return this.page.url() === expectedUrl;
   }
+
   async isLoaderVisible() {
     return await this.loader.isVisible();
+  }
+
+  async isAnyPasswordErrorVisible() {
+    return this.passwordError.isVisible();
   }
 }
