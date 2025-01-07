@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { MainPage } from "../pages/main.page";
-import { validUser } from "../utils/testUsers";
+import { validUser } from "../fixtures/testUsers";
 import { ProfilePage } from "../pages/profile.page";
 import testData from "../fixtures/testData.json";
 
